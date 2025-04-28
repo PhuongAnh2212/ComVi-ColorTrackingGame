@@ -12,7 +12,7 @@ def mouse(event, x, y, flags, param):
 cv2.namedWindow("draw")
 cv2.setMouseCallback("draw", mouse)
 
-cap = cv2.VideoCapture(2)
+cap = cv2.VideoCapture(1)
 
 while True:
     ret, frm = cap.read()
