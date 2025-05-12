@@ -10,11 +10,11 @@ import numpy as np
 cap = cv2.VideoCapture(0)
 
 # HSV color ranges (tuned for less interference)
-lower_purple = np.array([140, 60, 60])
-upper_purple = np.array([160, 120, 180])
+lower_purple = np.array([125, 40, 30])
+upper_purple = np.array([165, 255, 255])
 
-lower_green = np.array([55, 100, 100])
-upper_green = np.array([75, 255, 255])
+lower_green = np.array([35, 60, 40])
+upper_green = np.array([85, 255, 255])
 
 # Kalman filter setup
 def create_kalman():
@@ -69,20 +69,31 @@ def Fruit_Movement(Fruits, speed):
 def distance(a, b):
     return int(np.linalg.norm(np.array(a) - np.array(b)))
 
-def process_color(mask, kalman_filter, slash, slash_Color):
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+def process_color(mask, kalman_filter, slash, slash_Color, draw_bbox=False):
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if not contours:
         kalman_filter.predict()
         return slash, slash_Color, None
 
     cnt = max(contours, key=cv2.contourArea)
-    M = cv2.moments(cnt)
-    if M['m00'] == 0:
+    if cv2.contourArea(cnt) < 300:  # Filter out small noise
         kalman_filter.predict()
         return slash, slash_Color, None
 
-    cx = int(M['m10'] / M['m00'])
-    cy = int(M['m01'] / M['m00'])
+    if draw_bbox:
+        x, y, w_box, h_box = cv2.boundingRect(cnt)
+        cx = x + w_box // 2
+        cy = y + h_box // 2
+        cv2.rectangle(img, (x, y), (x + w_box, y + h_box), slash_Color, 2)
+    else:
+        M = cv2.moments(cnt)
+        if M['m00'] == 0:
+            kalman_filter.predict()
+            return slash, slash_Color, None
+        cx = int(M['m10'] / M['m00'])
+        cy = int(M['m01'] / M['m00'])
+
+
     measurement = np.array([[np.float32(cx)], [np.float32(cy)]])
     kalman_filter.correct(measurement)
     prediction = kalman_filter.predict()
@@ -102,14 +113,25 @@ while cap.isOpened():
 
     h, w, c = img.shape
     img = cv2.flip(img, 1)
-    hsv = cv2.cvtColor(cv2.blur(cv2.cvtColor(img, cv2.COLOR_BGR2HSV), (3, 3)), cv2.COLOR_HSV2BGR)
+    blurred = cv2.GaussianBlur(img, (7, 7), 0)
+    hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
+
 
     # Track both lightsticks
+
     mask_purple = cv2.inRange(hsv, lower_purple, upper_purple)
     mask_green = cv2.inRange(hsv, lower_green, upper_green)
+    kernel = np.ones((5, 5), np.uint8)
+    mask_purple = cv2.morphologyEx(mask_purple, cv2.MORPH_OPEN, kernel)
+    mask_purple = cv2.morphologyEx(mask_purple, cv2.MORPH_CLOSE, kernel)
 
-    slash_purple, color_purple, pos_purple = process_color(mask_purple, kalman_purple, slash_purple, (255, 0, 255))
-    slash_green, color_green, pos_green = process_color(mask_green, kalman_green, slash_green, (0, 255, 0))
+    mask_green = cv2.morphologyEx(mask_green, cv2.MORPH_OPEN, kernel)
+    mask_green = cv2.morphologyEx(mask_green, cv2.MORPH_CLOSE, kernel)
+
+    slash_purple, color_purple, pos_purple = process_color(mask_purple, kalman_purple, slash_purple, (255, 0, 255), draw_bbox=True)
+    slash_green, color_green, pos_green = process_color(mask_green, kalman_green, slash_green, (0, 255, 0), draw_bbox=True)
+
+
 
     # Detect hits
     for pos, slash_color in [(pos_purple, color_purple), (pos_green, color_green)]:
@@ -131,6 +153,11 @@ while cap.isOpened():
     if slash_green.size:
         cv2.polylines(img, [slash_green.reshape((-1, 1, 2))], False, color_green, 15, 0)
 
+
+    cv2.imshow("Purple Mask", mask_purple)
+    cv2.imshow("Green Mask", mask_green)
+    cv2.imshow("Original Frame", img)
+    
     # UI
     curr_Frame = time.time()
     delta_time = curr_Frame - prev_Frame
