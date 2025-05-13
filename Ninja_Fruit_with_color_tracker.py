@@ -93,6 +93,7 @@ def Fruit_Movement(Fruits, speed):
         fruit["Next_position"][1] = fruit["Curr_position"][1] - speed[1]
         fruit["Curr_position"] = fruit["Next_position"]
 
+# overtime slashing will improve the plotting result of slashing_fruit
 def is_fruit_cut(fruit, slash_position):
     fruit_x, fruit_y = fruit["Curr_position"]
     h, w = fruit["Image"].shape[:2]
@@ -164,6 +165,7 @@ while cap.isOpened():
     slash_green, color_green, pos_green = process_color(mask_green, kalman_green, slash_green, (0, 255, 0), draw_bbox=True)
 
     # Update img to display_img for rendering fruits, slashes, and UI
+    # add multi color tracking process, if 
     img = display_img
 
     # Detect hits
