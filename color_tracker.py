@@ -1,11 +1,7 @@
 import numpy as np
 import cv2
 import socket
-
-# Network setup
-UDP_IP_ADDRESS = "127.0.0.1"
-UDP_PORT_NO = 22222
-clientSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+import time
 
 # Fonts
 font = cv2.FONT_HERSHEY_SIMPLEX
@@ -29,27 +25,39 @@ kalman_purple = create_kalman()
 kalman_green = create_kalman()
 
 # HSV color ranges
-lower_purple = np.array([125, 40, 40])   # Lower hue, sat, and val
-upper_purple = np.array([170, 255, 255]) # Higher hue
+lower_purple = np.array([130, 30, 30])   
+upper_purple = np.array([140, 255, 255])
 
-lower_green = np.array([35, 50, 50])
-upper_green = np.array([85, 255, 255])
+lower_green = np.array([40, 50, 50])
+upper_green = np.array([80, 255, 255])
+
+# Morph kernel for mask cleaning
+kernel = np.ones((5,5), np.uint8)
 
 # Capture
 cap = cv2.VideoCapture(0)
 
+prev_time = time.time()
+
 def process_color(mask, color_name, box_color, kalman_filter, send_udp=False):
     global frame
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    
     if not contours:
         kalman_filter.predict()
         return
 
+    # Find largest contour
     areas = [cv2.contourArea(c) for c in contours]
     max_index = np.argmax(areas)
     cnt = contours[max_index]
-    M = cv2.moments(cnt)
 
+    # Filter small contours (noise)
+    if cv2.contourArea(cnt) < 300:
+        kalman_filter.predict()
+        return
+
+    M = cv2.moments(cnt)
     if M['m00'] == 0:
         kalman_filter.predict()
         return
@@ -67,21 +75,15 @@ def process_color(mask, color_name, box_color, kalman_filter, send_udp=False):
     label = f"{color_name}: {cx_kalman},{cy_kalman}"
     cv2.putText(frame, label, (cx_kalman, cy_kalman), font, fontScale, box_color, thickness, cv2.LINE_AA)
 
-    if send_udp:
-        # UDP message format
-        if color_name == "purple":
-            message = f"P:{-(cx_kalman - 320) * (3.7 / 320):.2f}"
-        elif color_name == "green":
-            message = f"G:{-(cx_kalman - 320) * (3.7 / 320):.2f}"
-        else:
-            message = f"{cx_kalman},{cy_kalman}"
-        clientSock.sendto(bytes(message, 'utf-8'), (UDP_IP_ADDRESS, UDP_PORT_NO))
 
 # Main loop
 while True:
     ret, frame = cap.read()
     if not ret:
         break
+
+    # Flip horizontally for intuitive mirror view
+    frame = cv2.flip(frame, 1)
 
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     hsv = cv2.blur(hsv, (3, 3))
@@ -90,6 +92,12 @@ while True:
     mask_purple = cv2.inRange(hsv, lower_purple, upper_purple)
     mask_green = cv2.inRange(hsv, lower_green, upper_green)
 
+    # Morphological operations to clean masks
+    mask_purple = cv2.morphologyEx(mask_purple, cv2.MORPH_OPEN, kernel)
+    mask_purple = cv2.morphologyEx(mask_purple, cv2.MORPH_CLOSE, kernel)
+    mask_green = cv2.morphologyEx(mask_green, cv2.MORPH_OPEN, kernel)
+    mask_green = cv2.morphologyEx(mask_green, cv2.MORPH_CLOSE, kernel)
+
     # Show individual masks (optional)
     cv2.imshow("Mask - Purple", mask_purple)
     cv2.imshow("Mask - Green", mask_green)
@@ -97,6 +105,12 @@ while True:
     # Process both colors
     process_color(mask_purple, "purple", (255, 0, 255), kalman_purple, send_udp=True)
     process_color(mask_green, "green", (0, 255, 0), kalman_green, send_udp=True)
+
+    # Show FPS
+    curr_time = time.time()
+    fps = int(1 / (curr_time - prev_time)) if (curr_time - prev_time) > 0 else 0
+    prev_time = curr_time
+    cv2.putText(frame, f'FPS: {fps}', (10, 30), font, 1, (0,255,0), 2)
 
     # Show final output
     cv2.imshow("Tracked Frame", frame)

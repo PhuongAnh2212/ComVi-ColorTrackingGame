@@ -7,10 +7,10 @@ import numpy as np
 cap = cv2.VideoCapture(0)
 
 # HSV color ranges for green and purple
-lower_purple = np.array([125, 40, 30])
-upper_purple = np.array([165, 255, 255])
-lower_green = np.array([35, 60, 40])
-upper_green = np.array([85, 255, 255])
+lower_purple = np.array([130, 30, 30])   
+upper_purple = np.array([140, 255, 255])
+lower_green = np.array([40, 50, 50])
+upper_green = np.array([80, 255, 255])
 
 # Kalman filter setup
 def create_kalman():
@@ -158,7 +158,7 @@ while cap.isOpened():
     mask_green = cv2.morphologyEx(mask_green, cv2.MORPH_CLOSE, kernel)
 
     # Apply background for display
-    display_img = cv2.addWeighted(background_resized, 1, img, 1, 0)
+    #display_img = cv2.addWeighted(background_resized, 1, img, 1, 0)
 
     # Process colors using the masks
     slash_purple, color_purple, pos_purple = process_color(mask_purple, kalman_purple, slash_purple, (255, 0, 255), draw_bbox=True)
@@ -166,7 +166,7 @@ while cap.isOpened():
 
     # Update img to display_img for rendering fruits, slashes, and UI
     # add multi color tracking process, if 
-    img = display_img
+    #img = display_img
 
     # Detect hits
     for pos, slash_color in [(pos_purple, color_purple), (pos_green, color_green)]:
