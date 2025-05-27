@@ -2,14 +2,23 @@
 
 ### Contributors:
 
-<p>
-  <a href="https://github.com/thaoton1910">
-    <img src="https://avatars.githubusercontent.com/u/187097297?v=4" alt="thaoton" width="100" style="border-radius: 50%; margin-right: 10px;" />
-  </a>
-
-  <a href="https://github.com/PhuongAnh2212">
-    <img src="https://avatars.githubusercontent.com/u/119726597?v=4" alt="pdphuonganh" width="100" style="border-radius: 50%;" />
-  </a>
-</p>
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/PhuongAnh2212">
+        <img src="https://avatars.githubusercontent.com/u/119726597?v=4" width="100" height="100" style="border-radius: 50%;" alt="PhuongAnh2212"/>
+        <br />
+        <sub><b>PhuongAnh2212</b></sub>
+      </a>
+    </td> 
+    <td align="center">
+      <a href="https://github.com/thaoton1910">
+        <img src="https://avatars.githubusercontent.com/u/187097297?v=4" width="100" height="100" style="border-radius: 50%;" alt="thaoton"/>
+        <br />
+        <sub><b>thaoton1910</b></sub>
+      </a>
+    </td>
+  </tr>
+</table>
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
