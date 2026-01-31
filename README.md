@@ -1,6 +1,34 @@
-# ComVi-ColorTrackingGame: Fruit Ninja using Lightsticks
+# Color-Based Fruit Ninja Game (OpenCV)
 
-### Contributors:
+This project is a webcam-based interactive game inspired by *Fruit Ninja*, implemented using **Python** and **OpenCV**. The game tracks colored objects in real time and uses their motion to slice falling fruits on the screen.
+
+
+## Description
+
+The game uses a webcam to detect **green** and **purple** colored objects in the scene. These objects act as virtual blades. Their positions are tracked over time using **Kalman filters** to smooth motion and improve robustness.
+
+Fruits are spawned, move across the screen, and can be cut when a tracked color position intersects with a fruit.
+
+
+## Features
+
+- Real-time color-based object tracking (green & purple)
+- Kalman filter for motion smoothing and prediction
+- Fruit spawning and movement
+- Collision detection between tracked positions and fruits
+- Score, level, lives, and FPS display
+- Uses PNG assets with alpha transparency
+
+## Requirements
+
+- Python 3
+- OpenCV (`cv2`)
+- NumPy
+
+## Preview
+
+
+## Contributors:
 
 <table>
   <tr>
