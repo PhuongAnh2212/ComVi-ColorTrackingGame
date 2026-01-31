@@ -27,6 +27,9 @@ Fruits are spawned, move across the screen, and can be cut when a tracked color 
 
 ## Preview
 
+▶️ **Gameplay video preview**
+
+[Click here to watch the demo](video/preview.mp4)
 
 ## Contributors:
 
