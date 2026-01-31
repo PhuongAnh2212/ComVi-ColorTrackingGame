@@ -27,8 +27,9 @@ Fruits are spawned, move across the screen, and can be cut when a tracked color 
 
 ## Preview
 
-![Gameplay Preview](video/demo.gif)
-
+<p align="center">
+  <img src="https://raw.githubusercontent.com/PhuongAnh2212/ComVi-ColorTrackingGame/main/video/demo.gif" alt="Gameplay Preview" width="600"/>
+</p>
 ## Contributors:
 
 <table>
